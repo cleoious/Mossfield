@@ -771,53 +771,107 @@ local function MakeComponentAPI(container, popupLayer)
         Corner(panel, Theme.RadiusMd)
         Stroke(panel, Theme.Border, 1)
 
-        -- SV gradient
-        local sv = Create("ImageLabel", {
+        -- SV area: pure hue background + white-left overlay + black-bottom overlay
+        local sv = Create("Frame", {
             Size             = UDim2.new(1, -14, 0, 85),
             Position         = UDim2.new(0, 7, 0, 7),
             BackgroundColor3 = Color3.fromHSV(h, 1, 1),
-            Image            = "rbxassetid://4155801252",
-            ScaleType        = Enum.ScaleType.Stretch,
+            BorderSizePixel  = 0,
             ZIndex           = 201,
             Parent           = panel,
         })
         Corner(sv, Theme.RadiusSm)
 
-        -- Hue bar
-        local hueBar = Create("ImageLabel", {
+        -- white → transparent (left to right = saturation)
+        local svWhite = Create("Frame", {
+            Size             = UDim2.new(1, 0, 1, 0),
+            BackgroundColor3 = Theme.White,
+            BorderSizePixel  = 0,
+            ZIndex           = 202,
+            Parent           = sv,
+        })
+        Corner(svWhite, Theme.RadiusSm)
+        local wg = Instance.new("UIGradient")
+        wg.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255)),
+        })
+        wg.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 1),
+        })
+        wg.Rotation = 0
+        wg.Parent = svWhite
+        svWhite.Active = false
+
+        -- transparent → black (top to bottom = value)
+        local svBlack = Create("Frame", {
+            Size             = UDim2.new(1, 0, 1, 0),
+            BackgroundColor3 = Theme.Black,
+            BorderSizePixel  = 0,
+            ZIndex           = 203,
+            Parent           = sv,
+        })
+        Corner(svBlack, Theme.RadiusSm)
+        svBlack.Active = false
+        local bg = Instance.new("UIGradient")
+        bg.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0)),
+        })
+        bg.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(1, 0),
+        })
+        bg.Rotation = 90
+        bg.Parent = svBlack
+
+        -- Hue bar using UIGradient
+        local hueBar = Create("Frame", {
             Size             = UDim2.new(1, -14, 0, 12),
             Position         = UDim2.new(0, 7, 0, 99),
-            Image            = "rbxassetid://4155803839",
             BackgroundColor3 = Theme.White,
+            BorderSizePixel  = 0,
             ZIndex           = 201,
             Parent           = panel,
         })
         Corner(hueBar, Theme.RadiusFull)
+        local hg = Instance.new("UIGradient")
+        hg.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,    Color3.fromHSV(0,   1, 1)),
+            ColorSequenceKeypoint.new(0.17, Color3.fromHSV(0.17,1, 1)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromHSV(0.33,1, 1)),
+            ColorSequenceKeypoint.new(0.5,  Color3.fromHSV(0.5, 1, 1)),
+            ColorSequenceKeypoint.new(0.67, Color3.fromHSV(0.67,1, 1)),
+            ColorSequenceKeypoint.new(0.83, Color3.fromHSV(0.83,1, 1)),
+            ColorSequenceKeypoint.new(1,    Color3.fromHSV(1,   1, 1)),
+        })
+        hg.Parent = hueBar
 
         -- Hue knob
         local hueKnob = Create("Frame", {
             Size             = UDim2.new(0, 10, 1, 2),
             Position         = UDim2.new(h, -5, 0, -1),
             BackgroundColor3 = Theme.White,
-            ZIndex           = 202,
+            ZIndex           = 204,
             Parent           = hueBar,
         })
         Corner(hueKnob, Theme.RadiusFull)
         Stroke(hueKnob, Theme.Black, 1)
 
-        -- SV knob
+        -- SV knob (above all overlays)
         local svKnob = Create("Frame", {
             Size             = UDim2.new(0, 11, 0, 11),
             Position         = UDim2.new(s, -5, 1 - v, -5),
             BackgroundColor3 = Theme.White,
-            ZIndex           = 202,
+            ZIndex           = 205,
             Parent           = sv,
         })
         Corner(svKnob, Theme.RadiusFull)
         Stroke(svKnob, Theme.Black, 1)
 
         local function refresh()
-            color              = Color3.fromHSV(h, s, v)
+            color                    = Color3.fromHSV(h, s, v)
             preview.BackgroundColor3 = color
             sv.BackgroundColor3      = Color3.fromHSV(h, 1, 1)
             hueKnob.Position         = UDim2.new(h, -5, 0, -1)
