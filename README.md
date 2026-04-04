@@ -22,11 +22,11 @@ local Window = Mossfield:CreateWindow({
 })
 ```
 
-### Mobile behaviour
+### Mobile toggle
 Pressing **X** collapses the UI into a small circle in the corner. Tapping the circle reopens it.
 
-### PC behaviour
-Pressing **X** (or the toggle key) shrinks the window to its center and hides it. Same key brings it back.
+### PC toggle
+Pressing **X** (or the toggle key(RightAlt as default)) shrinks the window to its center and hides it. Same key brings it back.
 
 ---
 
