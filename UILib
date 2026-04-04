@@ -20,15 +20,15 @@
         Icon       = nil,                      -- rbxassetid://... for mobile circle
         IconLabel  = "MS",                     -- fallback text for mobile circle
 
-        -- Optional key system whcih runs before the window opens
-        -- Remove the KeySystem table entirely to skip it if you don't want key
+        -- Optional key system — runs before the window opens
+        -- Remove the KeySystem table entirely to skip it
         KeySystem = {
             Notes       = "Join our discord for a key!",
             GetKeyLink  = "https://linkvertise.com/xxx",
             AltLink     = "https://discord.gg/xxx",   -- remove for no 2nd button
             AltLabel    = "Discord",
             Placeholder = "MOSSFIELD-XXXX-XXXX",
-            ValidKeys   = { "example" },
+            ValidKeys   = { "MOSSFIELD-DEMO-2025" },
             -- Validate = function(key) return key == "SECRET" end,
         },
     })
@@ -973,10 +973,10 @@ local function RunKeySystem(kCfg)
         Parent           = ksg,
     })
 
-    -- Card dimensions
-    local cardW = altLink and 340 or 290
-    -- height calculated after rows are known
-    local cardH = 148
+    -- Card dimensions — responsive to viewport
+    local vp2  = workspace.CurrentCamera.ViewportSize
+    local cardW = math.min(altLink and 340 or 295, vp2.X - 24)
+    local cardH = 148  -- recalculated below after all rows are laid out
 
     local card = Create("Frame", {
         Name             = "KeyCard",
@@ -1264,7 +1264,8 @@ local function RunKeySystem(kCfg)
         Parent           = body,
     })
 
-    cardH = statusY + 24
+    -- Total card height = titleBar (40) + body content up to statusLabel + bottom pad
+    cardH = 40 + statusY + 14 + 16
 
     -- ── Show / Hide ────────────────────────────────────────────────────
     local function hideCard()
