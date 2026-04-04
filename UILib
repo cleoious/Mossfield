@@ -20,15 +20,15 @@
         Icon       = nil,                      -- rbxassetid://... for mobile circle
         IconLabel  = "MS",                     -- fallback text for mobile circle
 
-        -- Optional key system that runs before the window opens
-        -- Remove the KeySystem table entirely to skip it
+        -- Optional key system whcih runs before the window opens
+        -- Remove the KeySystem table entirely to skip it if you don't want key
         KeySystem = {
             Notes       = "Join our discord for a key!",
             GetKeyLink  = "https://linkvertise.com/xxx",
             AltLink     = "https://discord.gg/xxx",   -- remove for no 2nd button
             AltLabel    = "Discord",
             Placeholder = "MOSSFIELD-XXXX-XXXX",
-            ValidKeys   = { "MOSSFIELD-DEMO-2025" },
+            ValidKeys   = { "example" },
             -- Validate = function(key) return key == "SECRET" end,
         },
     })
@@ -70,7 +70,7 @@
 ]]
 
 -- ═══════════════════════════════════════════════════════════════════════════
---  services stuff
+--  SERVICES
 -- ═══════════════════════════════════════════════════════════════════════════
 local Players           = game:GetService("Players")
 local UserInputService  = game:GetService("UserInputService")
@@ -81,7 +81,7 @@ local RunService        = game:GetService("RunService")
 local LocalPlayer       = Players.LocalPlayer
 
 -- ═══════════════════════════════════════════════════════════════════════════
---  themes
+--  THEME
 -- ═══════════════════════════════════════════════════════════════════════════
 local Theme = {
     -- Backgrounds
@@ -90,7 +90,7 @@ local Theme = {
     BG3       = Color3.fromRGB(26, 26, 36),
     BG4       = Color3.fromRGB(32, 32, 44),
 
-    -- Accent (purple)
+    -- Accent (purple/violet)
     Accent       = Color3.fromRGB(128, 75, 225),
     AccentDim    = Color3.fromRGB(85,  45, 160),
     AccentBright = Color3.fromRGB(165, 115, 255),
@@ -126,7 +126,7 @@ local Theme = {
 }
 
 -- ═══════════════════════════════════════════════════════════════════════════
---  utility
+--  UTILITIES
 -- ═══════════════════════════════════════════════════════════════════════════
 local function Create(class, props, children)
     local inst = Instance.new(class)
@@ -189,9 +189,9 @@ local function IsMobile()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════════
---  component factory (used by tabs i think?) 
+--  COMPONENT FACTORY  (used by both tabs and sub-tabs)
 -- ═══════════════════════════════════════════════════════════════════════════
-local function MakeComponentAPI(container)
+local function MakeComponentAPI(container, popupLayer)
     local api = {}
 
     --------------------------------------------------------------------------
@@ -224,7 +224,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- Labels
+    -- LABEL
     --------------------------------------------------------------------------
     function api:AddLabel(cfg)
         cfg = cfg or {}
@@ -242,7 +242,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- separator
+    -- SEPARATOR
     --------------------------------------------------------------------------
     function api:AddSeparator(cfg)
         cfg = cfg or {}
@@ -277,7 +277,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- buttons? 
+    -- BUTTON
     --------------------------------------------------------------------------
     function api:AddButton(cfg)
         cfg = cfg or {}
@@ -314,7 +314,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- ts toggles
+    -- TOGGLE
     --------------------------------------------------------------------------
     function api:AddToggle(cfg)
         cfg = cfg or {}
@@ -333,7 +333,7 @@ local function MakeComponentAPI(container)
         })
         Corner(track, Theme.RadiusFull)
 
-        
+        -- Knob
         local knob = Create("Frame", {
             Size             = UDim2.new(0, 17, 0, 17),
             Position         = toggled
@@ -346,7 +346,7 @@ local function MakeComponentAPI(container)
         })
         Corner(knob, Theme.RadiusFull)
 
-        
+        -- Invisible hit area
         local hit = Create("TextButton", {
             Size            = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
@@ -373,7 +373,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- slider
+    -- SLIDER
     --------------------------------------------------------------------------
     function api:AddSlider(cfg)
         cfg = cfg or {}
@@ -384,7 +384,7 @@ local function MakeComponentAPI(container)
 
         local row = Row(52)
 
-        -- top row: name and value
+        -- top row: name + value
         local topRow = Create("Frame", {
             Size             = UDim2.new(1, 0, 0, 20),
             BackgroundTransparency = 1,
@@ -486,7 +486,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- textbox I thibk
+    -- TEXTBOX
     --------------------------------------------------------------------------
     function api:AddTextBox(cfg)
         cfg = cfg or {}
@@ -527,7 +527,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- dropdowns
+    -- DROPDOWN
     --------------------------------------------------------------------------
     function api:AddDropdown(cfg)
         cfg = cfg or {}
@@ -537,9 +537,6 @@ local function MakeComponentAPI(container)
         local listH    = 0
 
         local row = Row(38)
-        row.ClipsDescendants = false
-        row.ZIndex = 5
-
         RowLabel(row, cfg.Name or "Dropdown")
 
         local dropBtn = Create("TextButton", {
@@ -570,28 +567,27 @@ local function MakeComponentAPI(container)
             Parent           = dropBtn,
         })
 
-        -- list panel
+        -- list panel parented to popupLayer (top level) to escape ScrollingFrame clipping
         local listFrame = Create("Frame", {
-            Size             = UDim2.new(1, 0, 0, 0),
-            Position         = UDim2.new(0, 0, 1, 4),
+            Size             = UDim2.new(0, 0, 0, 0),
             BackgroundColor3 = Theme.BG2,
             ClipsDescendants = true,
-            ZIndex           = 20,
+            ZIndex           = 200,
             Visible          = false,
-            Parent           = dropBtn,
+            Parent           = popupLayer or dropBtn,
         })
         Corner(listFrame, Theme.RadiusMd)
         Stroke(listFrame, Theme.Border, 1)
 
         local scroll = Create("ScrollingFrame", {
-            Size             = UDim2.new(1, 0, 1, 0),
+            Size                 = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
-            ScrollBarThickness = 2,
+            ScrollBarThickness   = 2,
             ScrollBarImageColor3 = Theme.Accent,
-            CanvasSize       = UDim2.new(0, 0, 0, 0),
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            ZIndex           = 20,
-            Parent           = listFrame,
+            CanvasSize           = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize  = Enum.AutomaticSize.Y,
+            ZIndex               = 200,
+            Parent               = listFrame,
         })
         List(scroll, 2)
         Pad(scroll, 4, 4, 4, 4)
@@ -610,65 +606,79 @@ local function MakeComponentAPI(container)
                     Font             = Theme.Font,
                     TextSize         = 12,
                     AutoButtonColor  = false,
-                    ZIndex           = 21,
+                    ZIndex           = 201,
                     Parent           = scroll,
                 })
                 Corner(ob, Theme.RadiusSm)
-
                 ob.MouseEnter:Connect(function()
-                    if opt ~= selected then
-                        Tween(ob, { BackgroundColor3 = Theme.BG4 }, 0.1)
-                    end
+                    if opt ~= selected then Tween(ob, { BackgroundColor3 = Theme.BG4 }, 0.1) end
                 end)
                 ob.MouseLeave:Connect(function()
-                    if opt ~= selected then
-                        Tween(ob, { BackgroundColor3 = Theme.BG3 }, 0.1)
-                    end
+                    if opt ~= selected then Tween(ob, { BackgroundColor3 = Theme.BG3 }, 0.1) end
                 end)
                 ob.MouseButton1Click:Connect(function()
-                    selected    = opt
-                    dropBtn.Text = opt
+                    selected      = opt
+                    dropBtn.Text  = opt
                     if cfg.Callback then cfg.Callback(opt) end
                     isOpen = false
-                    Tween(listFrame, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
+                    Tween(listFrame, { Size = UDim2.new(0, listFrame.AbsoluteSize.X, 0, 0) }, 0.18)
                     Tween(arrow, { Rotation = 0 }, 0.18)
-                    task.delay(0.18, function() listFrame.Visible = false end)
+                    task.delay(0.19, function() listFrame.Visible = false end)
                     buildOptions()
                 end)
             end
-            listH = math.min(#options * 30 + 8, 130)
+            listH = math.min(#options * 30 + 8, 140)
         end
         buildOptions()
+
+        local function closeList()
+            isOpen = false
+            Tween(listFrame, { Size = UDim2.new(0, listFrame.AbsoluteSize.X, 0, 0) }, 0.18)
+            Tween(arrow, { Rotation = 0 }, 0.18)
+            task.delay(0.19, function() listFrame.Visible = false end)
+        end
 
         dropBtn.MouseButton1Click:Connect(function()
             isOpen = not isOpen
             if isOpen then
-                listFrame.Visible = true
-                Tween(listFrame, { Size = UDim2.new(1, 0, 0, listH) }, 0.2)
+                -- Position absolutely relative to screen using AbsolutePosition
+                local abs  = dropBtn.AbsolutePosition
+                local absS = dropBtn.AbsoluteSize
+                listFrame.Position = UDim2.new(0, abs.X, 0, abs.Y + absS.Y + 4)
+                listFrame.Size     = UDim2.new(0, absS.X, 0, 0)
+                listFrame.Visible  = true
+                Tween(listFrame, { Size = UDim2.new(0, absS.X, 0, listH) }, 0.2)
                 Tween(arrow, { Rotation = 180 }, 0.2)
             else
-                Tween(listFrame, { Size = UDim2.new(1, 0, 0, 0) }, 0.18)
-                Tween(arrow, { Rotation = 0 }, 0.18)
-                task.delay(0.18, function() listFrame.Visible = false end)
+                closeList()
+            end
+        end)
+
+        -- Close when clicking outside
+        UserInputService.InputBegan:Connect(function(inp)
+            if not isOpen then return end
+            if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+                local p  = inp.Position
+                local fp = listFrame.AbsolutePosition
+                local fs = listFrame.AbsoluteSize
+                local bp = dropBtn.AbsolutePosition
+                local bs = dropBtn.AbsoluteSize
+                local inList = p.X >= fp.X and p.X <= fp.X + fs.X and p.Y >= fp.Y and p.Y <= fp.Y + fs.Y
+                local inBtn  = p.X >= bp.X and p.X <= bp.X + bs.X and p.Y >= bp.Y and p.Y <= bp.Y + bs.Y
+                if not inList and not inBtn then closeList() end
             end
         end)
 
         return {
-            SetOptions = function(_, opts)
-                options = opts
-                buildOptions()
-            end,
-            SetValue = function(_, v)
-                selected = v
-                dropBtn.Text = v
-                buildOptions()
-            end,
-            GetValue = function() return selected end,
+            SetOptions = function(_, opts) options = opts buildOptions() end,
+            SetValue   = function(_, v) selected = v dropBtn.Text = v buildOptions() end,
+            GetValue   = function() return selected end,
         }
     end
 
     --------------------------------------------------------------------------
-    -- keybinds
+    -- KEYBIND
     --------------------------------------------------------------------------
     function api:AddKeybind(cfg)
         cfg = cfg or {}
@@ -722,7 +732,7 @@ local function MakeComponentAPI(container)
     end
 
     --------------------------------------------------------------------------
-    -- colors
+    -- COLOR PICKER
     --------------------------------------------------------------------------
     function api:AddColorPicker(cfg)
         cfg = cfg or {}
@@ -748,27 +758,27 @@ local function MakeComponentAPI(container)
         Corner(preview, Theme.RadiusSm)
         Stroke(preview, Theme.Border, 1)
 
-        -- Picker panel
+        -- Picker panel parented to popupLayer to escape ScrollingFrame clipping
+        local panelW = 220
         local panel = Create("Frame", {
-            Size             = UDim2.new(1.3, 0, 0, 0),
-            Position         = UDim2.new(-0.15, 0, 1, 6),
+            Size             = UDim2.new(0, panelW, 0, 0),
             BackgroundColor3 = Theme.BG2,
             ClipsDescendants = true,
-            ZIndex           = 30,
+            ZIndex           = 200,
             Visible          = false,
-            Parent           = row,
+            Parent           = popupLayer or row,
         })
         Corner(panel, Theme.RadiusMd)
         Stroke(panel, Theme.Border, 1)
 
         -- SV gradient
         local sv = Create("ImageLabel", {
-            Size             = UDim2.new(1, -14, 0, 90),
-            Position         = UDim2.new(0, 7, 0, 8),
+            Size             = UDim2.new(1, -14, 0, 85),
+            Position         = UDim2.new(0, 7, 0, 7),
             BackgroundColor3 = Color3.fromHSV(h, 1, 1),
-            Image            = "rbxassetid://4155801252", -- white->transparent + black overlay
+            Image            = "rbxassetid://4155801252",
             ScaleType        = Enum.ScaleType.Stretch,
-            ZIndex           = 31,
+            ZIndex           = 201,
             Parent           = panel,
         })
         Corner(sv, Theme.RadiusSm)
@@ -776,10 +786,10 @@ local function MakeComponentAPI(container)
         -- Hue bar
         local hueBar = Create("ImageLabel", {
             Size             = UDim2.new(1, -14, 0, 12),
-            Position         = UDim2.new(0, 7, 0, 105),
+            Position         = UDim2.new(0, 7, 0, 99),
             Image            = "rbxassetid://4155803839",
             BackgroundColor3 = Theme.White,
-            ZIndex           = 31,
+            ZIndex           = 201,
             Parent           = panel,
         })
         Corner(hueBar, Theme.RadiusFull)
@@ -789,7 +799,7 @@ local function MakeComponentAPI(container)
             Size             = UDim2.new(0, 10, 1, 2),
             Position         = UDim2.new(h, -5, 0, -1),
             BackgroundColor3 = Theme.White,
-            ZIndex           = 32,
+            ZIndex           = 202,
             Parent           = hueBar,
         })
         Corner(hueKnob, Theme.RadiusFull)
@@ -800,7 +810,7 @@ local function MakeComponentAPI(container)
             Size             = UDim2.new(0, 11, 0, 11),
             Position         = UDim2.new(s, -5, 1 - v, -5),
             BackgroundColor3 = Theme.White,
-            ZIndex           = 32,
+            ZIndex           = 202,
             Parent           = sv,
         })
         Corner(svKnob, Theme.RadiusFull)
@@ -868,11 +878,43 @@ local function MakeComponentAPI(container)
         preview.MouseButton1Click:Connect(function()
             isOpen = not isOpen
             if isOpen then
-                panel.Visible = true
-                Tween(panel, { Size = UDim2.new(1.3, 0, 0, 125) }, 0.22)
+                local abs  = preview.AbsolutePosition
+                local absS = preview.AbsoluteSize
+                -- clamp so panel doesn't go off bottom of screen
+                local vp    = workspace.CurrentCamera.ViewportSize
+                local panelH = 130
+                local posY  = abs.Y + absS.Y + 4
+                if posY + panelH > vp.Y - 10 then
+                    posY = abs.Y - panelH - 4
+                end
+                local posX = math.clamp(abs.X + absS.X - panelW, 4, vp.X - panelW - 4)
+                panel.Position = UDim2.new(0, posX, 0, posY)
+                panel.Size     = UDim2.new(0, panelW, 0, 0)
+                panel.Visible  = true
+                Tween(panel, { Size = UDim2.new(0, panelW, 0, panelH) }, 0.22)
             else
-                Tween(panel, { Size = UDim2.new(1.3, 0, 0, 0) }, 0.18)
+                Tween(panel, { Size = UDim2.new(0, panelW, 0, 0) }, 0.18)
                 task.delay(0.18, function() panel.Visible = false end)
+            end
+        end)
+
+        -- Close when clicking outside
+        UserInputService.InputBegan:Connect(function(inp)
+            if not isOpen then return end
+            if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+                local p  = inp.Position
+                local pp = panel.AbsolutePosition
+                local ps = panel.AbsoluteSize
+                local rp = preview.AbsolutePosition
+                local rs = preview.AbsoluteSize
+                local inPanel   = p.X >= pp.X and p.X <= pp.X + ps.X and p.Y >= pp.Y and p.Y <= pp.Y + ps.Y
+                local inPreview = p.X >= rp.X and p.X <= rp.X + rs.X and p.Y >= rp.Y and p.Y <= rp.Y + rs.Y
+                if not inPanel and not inPreview then
+                    isOpen = false
+                    Tween(panel, { Size = UDim2.new(0, panelW, 0, 0) }, 0.18)
+                    task.delay(0.18, function() panel.Visible = false end)
+                end
             end
         end)
 
@@ -891,7 +933,7 @@ end
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
---  keyy systemm ui(internal and called by CreateWindow when cfg.KeySystem exists)
+--  KEY SYSTEM  (internal — called by CreateWindow when cfg.KeySystem exists)
 -- ═══════════════════════════════════════════════════════════════════════════
 local function OpenUrl(url)
     if setclipboard then setclipboard(url) end
@@ -1375,15 +1417,27 @@ function Mossfield:CreateWindow(cfg)
     cfg = cfg or {}
 
     local winTitle    = cfg.Title      or "Mossfield"
-    local winSize     = cfg.Size       or UDim2.new(0, 580, 0, 400)
     local toggleKey   = cfg.ToggleKey  or Enum.KeyCode.RightAlt
     local mobileIcon  = cfg.Icon       or nil
     local mobileLabel = cfg.IconLabel  or "UI"
 
+    -- Responsive size: respect cfg.Size on desktop, adapt to viewport on mobile/small screens
+    local vp      = workspace.CurrentCamera.ViewportSize
+    local isMob   = IsMobile() or vp.X < 560
+    local winSize
+    if cfg.Size and not isMob then
+        winSize = cfg.Size
+    else
+        local w = math.clamp(vp.X - 16, 300, 560)
+        local h = math.clamp(vp.Y - 70, 300, 420)
+        winSize = UDim2.new(0, w, 0, h)
+    end
+    local sidebarW = isMob and 110 or 148
+
     -- ── Key System (runs and blocks here if provided) ───────────────────────
     if cfg.KeySystem then
         local kCfg      = cfg.KeySystem
-        kCfg.ScriptName = kCfg.ScriptName or winTitle  -- inherit window title if not set
+        kCfg.ScriptName = kCfg.ScriptName or winTitle
         RunKeySystem(kCfg)
     end
 
@@ -1396,6 +1450,14 @@ function Mossfield:CreateWindow(cfg)
     })
     local ok = pcall(function() sg.Parent = game:GetService("CoreGui") end)
     if not ok then sg.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+    -- Popup layer: top-level transparent frame for dropdowns & color pickers
+    local popupLayer = Create("Frame", {
+        Size             = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex           = 190,
+        Parent           = sg,
+    })
 
     -- ── Window Frame ───────────────────────────────────────────────────────
     local win = Create("Frame", {
@@ -1517,12 +1579,11 @@ function Mossfield:CreateWindow(cfg)
     -- Left sidebar
     local sidebar = Create("Frame", {
         Name             = "Sidebar",
-        Size             = UDim2.new(0, 148, 1, 0),
+        Size             = UDim2.new(0, sidebarW, 1, 0),
         BackgroundColor3 = Theme.BG2,
         BorderSizePixel  = 0,
         Parent           = body,
     })
-    -- Round only bottom-left: cover top-right and top-left of the inner square to meet the window
     Corner(sidebar, Theme.RadiusLg)
     Create("Frame", { -- covers top corners
         Size             = UDim2.new(1, 0, 0.3, 0),
@@ -1556,8 +1617,8 @@ function Mossfield:CreateWindow(cfg)
     -- Right content panel
     local contentPanel = Create("Frame", {
         Name             = "ContentPanel",
-        Size             = UDim2.new(1, -148, 1, 0),
-        Position         = UDim2.new(0, 148, 0, 0),
+        Size             = UDim2.new(1, -sidebarW, 1, 0),
+        Position         = UDim2.new(0, sidebarW, 0, 0),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
         Parent           = body,
@@ -1709,7 +1770,38 @@ function Mossfield:CreateWindow(cfg)
         savedPos = win.Position   -- remember where it was dragged to
         hideUI()
     end)
-    circle.MouseButton1Click:Connect(showUI)
+    -- ── Circle drag (so it's draggable like the main window) ──────────────
+    local circleDrag, circleDragStart, circleDragOrigin = false, nil, nil
+    local circleMoved = false
+    circle.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+            circleDrag        = true
+            circleMoved       = false
+            circleDragStart   = i.Position
+            circleDragOrigin  = circle.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if circleDrag and (i.UserInputType == Enum.UserInputType.MouseMovement
+                        or i.UserInputType == Enum.UserInputType.Touch) then
+            local d = i.Position - circleDragStart
+            if math.abs(d.X) > 5 or math.abs(d.Y) > 5 then circleMoved = true end
+            circle.Position = UDim2.new(
+                circleDragOrigin.X.Scale, circleDragOrigin.X.Offset + d.X,
+                circleDragOrigin.Y.Scale, circleDragOrigin.Y.Offset + d.Y
+            )
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+            circleDrag = false
+        end
+    end)
+    circle.MouseButton1Click:Connect(function()
+        if not circleMoved then showUI() end
+    end)
 
     -- ── Tab system ─────────────────────────────────────────────────────────
     local tabs      = {}
@@ -1810,7 +1902,7 @@ function Mossfield:CreateWindow(cfg)
         table.insert(tabs, tabObj)
 
         -- Attach component API to tabObj (adds to tabContent)
-        local compAPI = MakeComponentAPI(tabContent)
+        local compAPI = MakeComponentAPI(tabContent, sg)
         for k, fn in pairs(compAPI) do
             tabObj[k] = fn
         end
@@ -1888,7 +1980,7 @@ function Mossfield:CreateWindow(cfg)
                 table.insert(subTabs, stObj)
 
                 -- Return component API scoped to this sub-tab's content
-                return MakeComponentAPI(stContent)
+                return MakeComponentAPI(stContent, sg)
             end
 
             return stAPI
@@ -1999,74 +2091,83 @@ function Mossfield:CreateWindow(cfg)
     -- ── Config save / load ─────────────────────────────────────────────────
     local configStore = {}
 
-    function Window:SaveConfig(name)
+    function Window:SaveConfig(name, silent)
         name = name or "default"
         local encoded = HttpService:JSONEncode(configStore)
-        local ok = pcall(writefile, "Mossfield_" .. name .. ".json", encoded)
-        self:Notify({
-            Title       = ok and "Config Saved" or "Save Failed",
-            Description = ok and ('Saved as "' .. name .. '"') or "writefile() not available",
-            Type        = ok and "success" or "error",
-            Duration    = 3,
-        })
+        pcall(writefile, "Mossfield_" .. name .. ".json", encoded)
+        -- only notify when explicitly requested (e.g. from UI Settings button)
+        if not silent then
+            self:Notify({
+                Title       = "Config Saved",
+                Description = 'Saved as "' .. name .. '"',
+                Type        = "success",
+                Duration    = 3,
+            })
+        end
     end
 
-    function Window:LoadConfig(name)
+    function Window:LoadConfig(name, silent)
         name = name or "default"
         local ok, raw = pcall(readfile, "Mossfield_" .. name .. ".json")
         if ok and raw then
             local decoded = HttpService:JSONDecode(raw)
             configStore = decoded
-            self:Notify({ Title = "Config Loaded", Description = 'Loaded "' .. name .. '"', Type = "success", Duration = 3 })
+            if not silent then
+                self:Notify({ Title = "Config Loaded", Description = 'Loaded "' .. name .. '"', Type = "success", Duration = 3 })
+            end
             return decoded
-        else
-            self:Notify({ Title = "Not Found",    Description = 'No config named "' .. name .. '"', Type = "warning", Duration = 3 })
-            return nil
         end
+        return nil
     end
 
     function Window:SetConfigValue(key, value) configStore[key] = value end
     function Window:GetConfigValue(key) return configStore[key] end
 
-    -- ── UI Settings tab ────────────────────────────────────────────────────
-    local settingsTab = Window:AddTab({ Name = "UI Settings" })
+    -- ── UI Settings tab — deferred so it's always the LAST tab ───────────────
+    task.defer(function()
+        local settingsTab = Window:AddTab({ Name = "UI Settings" })
 
-    settingsTab:AddLabel({ Text = "Toggle key (default: RightAlt)" })
+        settingsTab:AddLabel({ Text = "Toggle key (default: RightAlt)" })
 
-    settingsTab:AddKeybind({
-        Name    = "Toggle UI",
-        Default = toggleKey,
-        Callback = function(key)
-            toggleKey = key
-        end,
-    })
+        settingsTab:AddKeybind({
+            Name     = "Toggle UI",
+            Default  = toggleKey,
+            Callback = function(key)
+                toggleKey = key
+            end,
+        })
 
-    settingsTab:AddSeparator({ Text = "Config" })
+        settingsTab:AddSeparator({ Text = "Config" })
 
-    settingsTab:AddTextBox({
-        Name        = "Config Name",
-        Placeholder = "default",
-        Default     = "default",
-    })
+        local configNameBox = settingsTab:AddTextBox({
+            Name        = "Config Name",
+            Placeholder = "default",
+            Default     = "default",
+        })
 
-    settingsTab:AddButton({
-        Name       = "Save Config",
-        ButtonText = "Save",
-        Callback   = function()
-            Window:SaveConfig("default")
-        end,
-    })
+        settingsTab:AddButton({
+            Name       = "Save Config",
+            ButtonText = "Save",
+            Callback   = function()
+                local n = configNameBox:GetValue()
+                if n == "" then n = "default" end
+                Window:SaveConfig(n)   -- not silent → shows notification
+            end,
+        })
 
-    settingsTab:AddButton({
-        Name       = "Load Config",
-        ButtonText = "Load",
-        Callback   = function()
-            Window:LoadConfig("default")
-        end,
-    })
+        settingsTab:AddButton({
+            Name       = "Load Config",
+            ButtonText = "Load",
+            Callback   = function()
+                local n = configNameBox:GetValue()
+                if n == "" then n = "default" end
+                Window:LoadConfig(n)   -- not silent → shows notification
+            end,
+        })
 
-    settingsTab:AddSeparator()
-    settingsTab:AddLabel({ Text = "Mossfield v1.0  •  Dark / Purple" })
+        settingsTab:AddSeparator()
+        settingsTab:AddLabel({ Text = "Mossfield v1.0  •  Dark / Purple" })
+    end)
 
     -- ── Toggle key listener ────────────────────────────────────────────────
     UserInputService.InputBegan:Connect(function(inp, gp)
