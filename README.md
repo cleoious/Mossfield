@@ -23,17 +23,17 @@ local Window = Mossfield:CreateWindow({
 })
 ```
 
-### Mobile behaviour
+### Mobile toggle
 Pressing **X** collapses the UI into a small circle in the corner. Tapping the circle reopens it.
 
-### PC behaviour
+### PC toggle
 Pressing **X** (or the toggle key) shrinks the window to its center and hides it. Same key brings it back.
 
 ---
 
 ## Key System
 
-Mossfield has a built-in key system. Just add a `KeySystem` table to `CreateWindow` — it runs before the window opens, blocks until the correct key is entered, then fades out automatically.
+Mossfield has a built-in key system. Just add a `KeySystem` table to `CreateWindow` and it runs before the window opens, blocks until the correct key is entered, then fades out automatically.
 
 **To use it:**
 ```lua
@@ -52,7 +52,7 @@ local Window = Mossfield:CreateWindow({
 })
 ```
 
-**To skip the key system** — don't include `KeySystem` at all:
+**To skip the key system** don't include `KeySystem` at all:
 ```lua
 local Window = Mossfield:CreateWindow({
     Title = "My Script",
@@ -126,13 +126,13 @@ Visuals:AddToggle({ Name = "Tracers", Default = false })
 Config:AddButton({ Name = "Reset Config", Callback = function() end })
 ```
 
-Sub-tabs render as a small pill bar at the top of the tab content area — like `Visuals | Config`.
+Sub-tabs render as a small pill bar at the top of the tab content area like `Visuals | Config`.
 
 ---
 
 ## Components
 
-All components can be added to a **Tab** or a **Sub-Tab**.
+All components can be added to a **Tab**.
 
 ---
 
