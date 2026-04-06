@@ -6,7 +6,7 @@
 ## Loading
 
 ```lua
-local Mossfield = loadstring(game:HttpGet("YOUR_RAW_URL_HERE"))()
+local Mossfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/cleoious/Mossfield/refs/heads/main/UILib"))()
 ```
 
 ---
